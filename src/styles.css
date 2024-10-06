@@ -1,0 +1,41 @@
+*,
+*::before,
+*::-webkit-textfield-decoration-container {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.625rem;
+    font-size: 1.125rem;
+}
+
+nav a {
+    display: block;
+    padding: 0.25rem 1rem 0.3125rem;
+    color: #000000;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 9999px;
+    box-shadow: 0 0 0 0.125rem #000000;
+    user-select: none;
+    cursor: pointer;
+}
+
+nav a.current {
+    background: #000000;
+    color: #ffffff;
+}
+
+.app {
+    font-size: 3rem;
+    padding: 15px;
+}

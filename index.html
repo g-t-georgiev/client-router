@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base href="/" />
+    <title>Simple SPA</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <script type="module" src="/src/app/main.js"></script>
+</head>
+
+<body>
+    <nav>
+        <a href="/" title="Home" class="current" data-nav-btn>Home</a>
+        <a href="/about" title="About" data-nav-btn>About</a>
+        <a href="/about#test" title="Test" data-nav-btn>Anchor test</a>
+        <a href="/user/12525" title="Profile" data-nav-btn>Dashboard</a>
+        <a href="/user/12525/profile" title="Profile" data-nav-btn>Profile</a>
+        <a href="/user/12525/profile/edit" title="Profile Edit" data-nav-btn>Profile Edit</a>
+        <a href="/user/12525/profile/delete" title="Profile Delete" data-nav-btn>Profile Delete</a>
+        <a href="/test" data-nav-btn>Test</a>
+    </nav>
+    
+    <div class="app" id="root"></div>
+</body>
+
+</html>
