@@ -8,69 +8,101 @@ const navListBtns = Array.from(navList.querySelectorAll('a'), (el) => new NavLis
 
 const router = new Router();
 
-router.addRoute({ path: '*', middlewares: [
-    async (ctx) => {
-        console.log(ctx.route, ctx.params);
-    }
-]});
+router.addRoute({
+    path: '*', middlewares: [
+        async (ctx) => {
 
-router.addRoute({ path: '/user/*', middlewares: [
-    async (ctx) => {
-        console.log(ctx.route, ctx.params);
-    }
-]});
+            console.log(`* - ${ctx.url} - middleware1`, ctx);
+        }
+    ]
+});
 
-router.addRoute({ 
+router.addRoute({
+    path: '/user/*', middlewares: [
+        async (ctx) => {
+
+            console.log(`/user/* - ${ctx.url} - middleware1`, ctx);
+        }
+    ]
+});
+
+router.addRoute({
     path: '/user/:id/profile/:operation',
-    title: 'Profile actions', 
+    title: 'Profile actions',
     middlewares: [
         (ctx) => {
-            const { params, state, route } = ctx;
-            console.log(route, params)
+
+            console.log(`${ctx.url} - middleware1`, ctx);
         },
         (ctx) => {
+
+            console.log(`${ctx.url} - middleware2`, ctx);
             let operation = ctx.params['operation'];
             root.innerHTML = `<div>Profile ${operation[0].toUpperCase()}${operation.slice(1)}</div>`.trim();
         }
     ]
 });
 
-router.addRoute({ 
+router.addRoute({
     path: '/user/:id/profile',
-    title: 'Profile', 
+    title: 'Profile',
     middlewares: [
+        async (ctx) => await new Promise((resolve, reject) => {
+                setTimeout(async () => {
+                    try {
+
+                        let resp = await fetch('./data.json');
+                        let data = await resp.json();
+                        resolve(data);
+                    } catch (err) {
+                        reject(err);
+                    }
+                }, 3000);
+            })
+            .catch((err) => {
+                console.error(err);
+            })
+            .then((data) => {
+                ctx.data = data;
+                console.log(`${ctx.url} - middleware1`, ctx);
+            }),
+
         (ctx) => {
-            const { params, state, route } = ctx;
-            console.log(route, params);
+
+            console.log(`${ctx.url} - middleware2`, ctx);
         },
+
         (ctx) => {
+
+            console.log(`${ctx.url} - middleware3`, ctx);
             root.innerHTML = `<div>Profile</div>`.trim();
         }
     ]
 });
 
-router.addRoute({ 
+router.addRoute({
     path: '/user/:id',
-    title: 'Dashboard', 
+    title: 'Dashboard',
     middlewares: [
         (ctx) => {
-            const { params, state, route } = ctx;
-            console.log(route, params);
+
+            console.log(`${ctx.url} - middleware1`, ctx);
         },
         (ctx) => {
+
+            console.log(`${ctx.url} - middleware2`, ctx);
             root.innerHTML = `<div>Profile Dashboard</div>`.trim();
         }
     ]
 });
 
-router.addRoute({ 
+router.addRoute({
     path: '/about',
-    title: 'About', 
+    title: 'About',
     middlewares: [
         (ctx) => {
-            console.log(ctx.route, ctx.state, ctx.params);
-        },
-        (ctx) => {
+
+            console.log(`${ctx.url} - middleware1`, ctx);
             root.innerHTML = `
             <div style="margin-bottom: 2000px;" data-top>About page</div>
             <div style="font-weight: 700; margin-bottom: 70px;" id="test">#test</div>`.trim();
@@ -78,14 +110,17 @@ router.addRoute({
     ]
 });
 
-router.addRoute({ 
+router.addRoute({
     path: '/',
-    title: 'Home', 
+    title: 'Home',
     middlewares: [
         async (ctx) => {
-            console.log(ctx.route, ctx.params);
+
+            console.log(`${ctx.url} - middleware1`, ctx);
         },
         (ctx) => {
+
+            console.log(`${ctx.url} - middleware2`, ctx);
             root.innerHTML = `
             <div>Home</div>`.trim();
         }
@@ -93,11 +128,13 @@ router.addRoute({
 });
 
 router.addRoute('*', '404! Page not found', (ctx) => {
+
+    console.log(`${ctx.url} - middleware1`, ctx);
     root.innerHTML = `
     <div><span style="font-weight: 600;">404!</span> Page not found</div>`.trim();
 });
 
-console.log('ROUTES', router.routes);
+// console.log('ROUTES', router.routes);
 
 eventTransmitter.subscribe('router:navigate', (ev) => {
     let url;
