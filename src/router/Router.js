@@ -1,4 +1,4 @@
-class Router {
+export class Router {
 
     /**
      * @constructor
@@ -56,7 +56,7 @@ class Router {
         const params = {};
 
         if (match) {
-            console.log('Router#extractParams', match);
+            // console.log('Router#extractParams', match);
             paramKeys.forEach((key, index) => {
                 params[key] = match[index + 1];
             });
@@ -68,10 +68,10 @@ class Router {
     /**
      * 
      * @param {string} url 
-     * @param {({ state: {}, params: {}, route: string }) => void} onMatch 
+     * @param {({ state: {}, params: {}, route: string }) => void} finalizer 
      * @returns 
      */
-    matchRoute(url, onMatch) {
+    matchRoute(url, finalizer) {
         let matched = false;
         let context = { params: {}, state: {}, route: '' };
         let middlewares = [];
@@ -79,7 +79,7 @@ class Router {
         let i = 0,
             n = this.routes.length;
 
-        for (;i < n; i++) {
+        for (; i < n; i++) {
 
             const route = this.routes[i];
 
@@ -87,7 +87,7 @@ class Router {
 
                 const genericPath = route.path.replace(/(\/)?\*/, '(\\/)?.*');
                 const genericRegex = new RegExp(`^${genericPath}`);
-    
+
                 if (genericRegex.test(url)) {
 
                     if (route.middlewares && route.middlewares?.length) {
@@ -96,18 +96,13 @@ class Router {
 
                     if (i == n - 1 && !matched) {
 
+                        context.url = '/404-page-not-found';
                         context.route = route.path;
                         context.state = history.state;
                         context.params = {};
 
-                        this.executeMiddlewares(context, middlewares)
-                            .catch((error) => {
-                                console.error(error);
-                            })
-                            .then(() => {
-                                onMatch(context);
-                                history.pushState({}, '404! Page not found', '/404-page-not-found');
-                            });
+                        // execute middlewares
+                        this.processTasksQueue(context, middlewares).then(finalizer);
                     }
 
                     continue;
@@ -116,23 +111,18 @@ class Router {
 
             const regexPath = route.path.replace(/:([^\/]+)/g, '([^\\/]+)');
             const regex = new RegExp(`^${regexPath}$`);
-            console.log(`Router#matchRoute - Testing - URL: ${url} with REGEX: ${regex}`);
+            // console.log(`Router#matchRoute - Testing - URL: ${url} with REGEX: ${regex}`);
 
             if (regex.test(url)) {
 
+                context.url = url;
                 context.route = route.path;
-                context.state = history.state;
+                context.state = history.state ?? {};
                 context.params = this.extractParams(route.path, url);
                 if (route.middlewares && route.middlewares?.length) middlewares.push(...route.middlewares);
 
-                this.executeMiddlewares(context, middlewares)
-                    .catch((error) => {
-                        console.error(error);
-                    })
-                    .then(() => {
-                        onMatch(context);
-                        history.pushState({}, route.title ?? '', url);
-                    });
+                // execute middlewares
+                this.processTasksQueue(context, middlewares).then(finalizer);
 
                 matched = true;
             }
@@ -141,24 +131,30 @@ class Router {
         }
     }
 
-    /**
-     * 
-     * @param {{ state: {}, params: {}, route: string }} ctx 
-     * @param {(({ state: {}, params: {}, route: string }) => void)[]} middlewares 
-     * @returns 
-     */
-    executeMiddlewares(ctx, middlewares) {
-        return Promise.all(middlewares.map(async (middleware) => {
-            try { 
-                let res = middleware(ctx);
-                if (res instanceof Promise) {
-                    await res;
+    processTasksQueue(ctx, queue) {
+        console.log('TASKS QUEUE', queue.length);
+        return new Promise((resolve) => {
+            const handler = (ctx, queue) => {
+                let currentTask = queue?.[0];
+                if (typeof currentTask === 'function') {
+                    queueMicrotask(async () => {
+                        let result = currentTask?.(ctx);
+                        if (result instanceof Promise) {
+                            await result;
+                        } else {
+                            await Promise.resolve(result);
+                        }
+        
+                        handler(ctx, queue.slice(1));
+                    });
+                    return;
                 }
-                return res; 
-            } catch (error) { 
-                throw error; 
-            }
-        }))
+
+                resolve(ctx);
+            };
+
+            handler(ctx, queue);
+        });
     }
 
     /**
@@ -180,11 +176,14 @@ class Router {
      * @returns 
      */
     navigateTo(url) {
-        console.log('Router#navigatTo', url);
+        // console.log('Router#navigatTo', url);
         let [path, hash] = url.split('#');
         this.matchRoute(path, (ctx) => {
 
+            history.pushState(ctx.state, '', ctx.url);
+
             if (hash) {
+                // location.hash = hash;
                 this.scrollTo(hash);
             }
         });
