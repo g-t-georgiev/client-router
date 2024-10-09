@@ -1,6 +1,6 @@
-import Router from '../router/Router.js';
-import eventTransmitter from '../components/EventTransmitter.js';
-import { NavList, NavListBtn } from "./nav/index.js";
+import { Router } from './lib/router/index.js';
+import { eventTransmitter } from './lib/events/index.js';
+import { NavList, NavListBtn } from "./components/index.js";
 
 const root = document.getElementById('root');
 const navList = new NavList(document.querySelector('nav'));

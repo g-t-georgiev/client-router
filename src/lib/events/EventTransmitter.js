@@ -13,7 +13,7 @@ class EventTransmitter {
     dispatch(type, detail) {
 
         // console.log('EventTransmitter#dispatch', type, detail);
-        return document.dispatchEvent(new CustomEvent(type,  { bubbles: true, cancelable: true, detail }));
+        return document.dispatchEvent(new CustomEvent(type, { bubbles: true, cancelable: true, detail }));
     }
 
     subscribe(type, handler) {
@@ -30,9 +30,9 @@ class EventTransmitter {
 
     static createInstance() {
 
-        if (!this.instance) 
+        if (!this.instance)
             return new this();
-        
+
         return this.instance;
     }
 }

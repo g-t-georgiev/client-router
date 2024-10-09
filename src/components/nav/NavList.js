@@ -1,5 +1,5 @@
-import Component from "../../components/Component.js";
-import eventTransmitter from "../../components/EventTransmitter.js";
+import { Component } from "../../lib/components/index.js";
+import { eventTransmitter } from "../../lib/events/index.js";
 
 export class NavList extends Component {
 
